@@ -9,3 +9,10 @@ plugins:
 
   - plugin: grpc-gateway
     out: internal/generated
+
+  - plugin: openapiv2
+    out: internal/generated/openapi
+    opt:
+      - allow_merge=true
+      - merge_file_name=go_load
+      - logtostderr=true
