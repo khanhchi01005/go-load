@@ -3,7 +3,7 @@ package configs
 type Database struct {
 	Host string 
 	Port string
-	User string
+	account string
 	Password string
 	Database string
 }

@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"log"
 	"github.com/doug-martin/goqu/v9"
-	"github.com/khanhchi01005/go-load/internal/configs"
+	"go-load/internal/configs"
 	_ "github.com/go-sql-driver/mysql"   
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 )
 
 func InitializeDB(databaseConfig configs.Database)(db *sql.DB, cleanup func(), error)  {
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", 
-	databaseConfig.Username, 
+	databaseConfig.accountname, 
 	databaseConfig.Password, 
 	databaseConfig.Host, 
 	databaseConfig.Port, 
