@@ -1,49 +1,75 @@
-pacakge database
+package database
+
+import (
+	"context"
+	"log"
+
+	"github.com/doug-martin/goqu/v9"
+)
 
 type Account struct {
-	accountId uint64 `sql:"account_id"`
-	accountname string `sql:"accountname"`
+	AccountID   uint64 `sql:"account_id"`
+	AccountName string `sql:"accountname"`
 }
 
-type AccountDataAccessor interface{
-	CreateAccount(ctx context.Context, account Account) (uint64,error)
+type Database interface {
+	Insert(table interface{}) *goqu.InsertDataset
+}
+
+type AccountDataAccessor interface {
+	CreateAccount(ctx context.Context, account Account) (uint64, error)
 	GetAccountByID(ctx context.Context, id uint64) (Account, error)
-	GetAccountByaccountname(ctx context.Context, accountname string) (Account, error)
+	GetAccountByAccountName(ctx context.Context, accountName string) (Account, error)
+	WithDatabase(database Database) AccountDataAccessor
 }
 
 type accountDataAccessor struct {
-	database *goqu.Database
+	database Database
 }
 
-func NewAccountAcessor(database *goqu.Database) AccountDataAccessor {
+func NewAccountAccessor(database *goqu.Database) AccountDataAccessor {
 	return &accountDataAccessor{database: database}
 }
 
-func (a accountDataAccessor) CreateAccount(ctx context.Context, account Account) (uint64,error) {
+func NewAccountDataAccessor(database *goqu.Database) AccountDataAccessor {
+	return NewAccountAccessor(database)
+}
+
+
+func (a accountDataAccessor) CreateAccount(ctx context.Context, account Account) (uint64, error) {
 	result, err := a.database.
 		Insert("accounts").
 		Rows(goqu.Record{
-			"accountname": account.accountname,
+			"accountname": account.AccountName,
 		}).
 		Executor().
-		ExeContext(ctx)
+		ExecContext(ctx)
 	if err != nil {
-		log.Printf("Failed to create account", err)
+		log.Printf("failed to create account: %v", err)
 		return 0, err
 	}
 
-	lastInsertedId , err :=result.LastInsertId()
+	lastInsertedID, err := result.LastInsertId()
 	if err != nil {
-		log.Printf("Failed to create account", err)
+		log.Printf("failed to read last inserted account id: %v", err)
 		return 0, err
 	}
-	return uint64(lastInsertedId), nil
+
+	return uint64(lastInsertedID), nil
 }
 
-func (a *accountDataAccessor) GetAccountByID(ctx context.Context, id uint64) (Account, error) {
+func (a accountDataAccessor) GetAccountByID(ctx context.Context, id uint64) (Account, error) {
+	_ = ctx
+	_ = id
 	return Account{}, nil
 }
 
-func (a *accountDataAccessor) GetAccountByaccountname(ctx context.Context, accountname string) (Account, error) {
+func (a *accountDataAccessor) GetAccountByAccountName(ctx context.Context, accountName string) (Account, error) {
+	_ = ctx
+	_ = accountName
 	return Account{}, nil
+}
+
+func (a *accountDataAccessor) WithDatabase(database Database) AccountDataAccessor {
+	return &accountDataAccessor{database: database}
 }

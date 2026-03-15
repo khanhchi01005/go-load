@@ -1,31 +1,39 @@
-package logic 
+package logic
 
 import (
 	"context"
-	
+	"errors"
+	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"goload/internal/configs"
 )
+
 type Hash interface {
 	Hash(ctx context.Context, data string) (string, error)
 	IsHashEqual(ctx context.Context, data string, hashed string) (bool, error)
 }
 
 type hash struct {
-	accountConfig configs.Account 
-
+	accountConfig configs.Account
 }
 
-func NewHash() Hash {
+func NewHash(accountConfig configs.Account) Hash {
 	return &hash{
-		accountConfig: accountConnfig,
+		accountConfig: accountConfig,
+	
 	}
 }
+
 
 func (h hash) Hash(ctx context.Context, data string) (string, error) {
-	hased, err := bcrypt.GenerateFromPassword([]byte(data), h.accountConfig.HashCost)
+	hashed, err := bcrypt.GenerateFromPassword([]byte(data), h.accountConfig.HashCost)
 	if err != nil {
-		return "", err
+		return "", status.Error(codes.Internal, "failed to hash data")
 	}
-	return string(hashed), nil 
+
+	return string(hashed), nil
 }
 
 func (h hash) IsHashEqual(ctx context.Context, data string, hashed string) (bool, error) {
@@ -33,7 +41,9 @@ func (h hash) IsHashEqual(ctx context.Context, data string, hashed string) (bool
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return false, nil
 		}
-		return false, err
+
+		return false, status.Error(codes.Internal, "failed to check if data equal hash")
 	}
+
 	return true, nil
 }

@@ -1,3 +1,5 @@
-package configs 
+package configs
 
-type Account 
+type Account struct {
+	HashCost int
+}

@@ -4,21 +4,35 @@ import (
 	"context"
 
 	"goload/internal/generated/grpc/go_load"
-
+	"goload/internal/logic"
 	"google.golang.org/grpc"
 )
 
 type Handler struct {
 	go_load.UnimplementedGoLoadServiceServer
+	accountLogic logic.Account 
 }
 
-func NewHandler() go_load.GoLoadServiceServer {
-	return &Handler{}
+func NewHandler(
+	accountLogic logic.Account,
+) go_load.GoLoadServiceServer {
+	return &Handler{
+		accountLogic: accountLogic,
+	}
 }
 
-func (h *Handler) CreateAccount(ctx context.Context, req *go_load.CreateAccountRequest) (*go_load.CreateAccountResponse, error) {
+func (a Handler) CreateAccount(ctx context.Context, request *go_load.CreateAccountRequest) (*go_load.CreateAccountResponse, error) {
 	// TODO: implement
-	return &go_load.CreateAccountResponse{}, nil
+	output, err := a.accountLogic.CreateAccount(ctx, logic.CreateAccountParams{
+		AccountName: request.GetAccountName(),
+		Password:    request.GetPassword(),
+	}) 
+	if err != nil{
+		return nil, err
+	}
+	return &go_load.CreateAccountResponse{
+		AccountId: output.ID,
+	}, nil
 }
 
 func (h *Handler) CreateSession(ctx context.Context, req *go_load.CreateSessionRequest) (*go_load.CreateSessionResponse, error) {
