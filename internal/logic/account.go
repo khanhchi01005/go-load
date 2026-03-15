@@ -25,9 +25,14 @@ type CreateSessionParams struct {
 	Password    string
 }
 
+type CreateSessionOutput struct {
+	Account CreateAccountOutput
+	Token   string
+}
+
 type Account interface {
 	CreateAccount(ctx context.Context, params CreateAccountParams) (CreateAccountOutput, error)
-	CreateSession(ctx context.Context, params CreateSessionParams) (account CreateAccountOutput, token string, err error)
+	CreateSession(ctx context.Context, params CreateSessionParams) (CreateSessionOutput, error)
 }
 
 type account struct {
@@ -103,8 +108,31 @@ func (a account) CreateAccount(ctx context.Context, params CreateAccountParams) 
 	
 }
 
-func (a account) CreateSession(ctx context.Context, params CreateSessionParams) (CreateAccountOutput, string, error) {
-	_ = ctx
-	_ = params
-	return CreateAccountOutput{}, "", errors.New("not implemented")
+func (a account) CreateSession(ctx context.Context, params CreateSessionParams) (CreateSessionOutput, error) {
+	existingAccount, err := a.accountDataAccessor.GetAccountByAccountName(ctx, params.AccountName)
+	if err != nil {
+		return CreateSessionOutput{}, err
+	}
+
+	existingAccountPassword, err := a.accountPasswordDataAccessor.GetAccountPassword(ctx, existingAccount.AccountID)
+	if err != nil {
+		return CreateSessionOutput{}, err
+	}
+
+	isHashEqual, err := a.hashLogic.IsHashEqual(ctx, params.Password, existingAccountPassword.Hash)
+	if err != nil {
+		return CreateSessionOutput{}, err
+	}
+
+	if !isHashEqual {
+		return CreateSessionOutput{}, errors.New("incorrect password")
+	}
+
+	return CreateSessionOutput{
+		Account: CreateAccountOutput{
+			ID:          existingAccount.AccountID,
+			AccountName: existingAccount.AccountName,
+		},
+		Token: "",
+	}, nil
 }

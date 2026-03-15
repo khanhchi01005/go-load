@@ -3,19 +3,20 @@ package grpc
 import (
 	"context"
 
-	"goload/internal/generated/grpc/go_load"
+	"goload/internal/generated/grpc/goload"
 	"goload/internal/logic"
 	"google.golang.org/grpc"
 )
 
 type Handler struct {
-	go_load.UnimplementedGoLoadServiceServer
+	goload.UnimplementedGoLoadServiceServer
 	accountLogic logic.Account 
+	downloadTaskLogic logic.DownloadTask
 }
 
 func NewHandler(
 	accountLogic logic.Account,
-) go_load.GoLoadServiceServer {
+) goload.GoLoadServiceServer {
 	return &Handler{
 		accountLogic: accountLogic,
 	}
@@ -30,34 +31,34 @@ func (a Handler) CreateAccount(ctx context.Context, request *go_load.CreateAccou
 	if err != nil{
 		return nil, err
 	}
-	return &go_load.CreateAccountResponse{
+	return &goload.CreateAccountResponse{
 		AccountId: output.ID,
 	}, nil
 }
 
 func (h *Handler) CreateSession(ctx context.Context, req *go_load.CreateSessionRequest) (*go_load.CreateSessionResponse, error) {
 	// TODO: implement
-	return &go_load.CreateSessionResponse{}, nil
+	return &goload.CreateSessionResponse{}, nil
 }
 
 func (h *Handler) CreateDownloadTask(ctx context.Context, req *go_load.CreateDownloadTaskRequest) (*go_load.CreateDownloadTaskResponse, error) {
 	// TODO: implement
-	return &go_load.CreateDownloadTaskResponse{}, nil
+	return &goload.CreateDownloadTaskResponse{}, nil
 }
 
 func (h *Handler) GetDownloadTaskList(ctx context.Context, req *go_load.GetDownloadTaskListRequest) (*go_load.GetDownloadTaskListResponse, error) {
 	// TODO: implement
-	return &go_load.GetDownloadTaskListResponse{}, nil
+	return &goload.GetDownloadTaskListResponse{}, nil
 }
 
 func (h *Handler) UpdateDownloadTask(ctx context.Context, req *go_load.UpdateDownloadTaskRequest) (*go_load.UpdateDownloadTaskResponse, error) {
 	// TODO: implement
-	return &go_load.UpdateDownloadTaskResponse{}, nil
+	return &goload.UpdateDownloadTaskResponse{}, nil
 }
 
 func (h *Handler) DeleteDownloadTask(ctx context.Context, req *go_load.DeleteDownloadTaskRequest) (*go_load.DeleteDownloadTaskResponse, error) {
 	// TODO: implement
-	return &go_load.DeleteDownloadTaskResponse{}, nil
+	return &goload.DeleteDownloadTaskResponse{}, nil
 }
 
 func (h *Handler) GetDownloadTaskFile(req *go_load.GetDownloadTaskFileRequest, stream grpc.ServerStreamingServer[go_load.GetDownloadTaskFileResponse]) error {
